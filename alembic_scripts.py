@@ -7,6 +7,7 @@ from alembic.config import Config
 
 # Resolves local and absolute references to alembic.ini
 def _path_resolver(path=None):
+    # If no path provided, try relative alembic.ini. Else use absolute path (recommended)
     if path is None or path == "alembic.ini":
         path = "alembic.ini"
     else:
@@ -28,6 +29,7 @@ def alembic_engine(engine, path=None, resolution=True):
         engine_url = str(engine.url)
         config = configparser.ConfigParser()
         config.read(path)
+        # In the .ini file in the alembic section, set sqlalchemy.url equal to the engine's url
         config.set("alembic", "sqlalchemy.url", engine_url)
         with open(path, "w", encoding="utf-8") as file:
             config.write(file)
@@ -41,7 +43,9 @@ def alembic_revision(engine, path=None, resolution=True):
     if path is not None:
         alembic_engine(engine, path)
         alembic_config = Config(path)
+        # Generate revisions for table modifications
         ac.revision(alembic_config, autogenerate=True)
+        # Upgrade the db to reflect the most recent revision (heads)
         ac.upgrade(alembic_config, revision="heads")
 
 
