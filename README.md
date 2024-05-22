@@ -10,7 +10,7 @@ To install Alembic, just `pip install alembic`
 To initialize alembic, cd to the directory containing model.py and run `alembic init alembic`
 * The alembic following init will be the name of the directory created by the command so it can be anything
 
-You should be left with a directory structure similar to this:
+You should be left with a directory structure similar to this:\
 tethysapp-test\
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── install.yml\
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;├── setup.py\
