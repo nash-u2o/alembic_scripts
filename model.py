@@ -3,7 +3,7 @@ from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-from .alembic_scripts import alembic_engine, alembic_revision, alembic_suite
+from .alembic_scripts import alembic_engine, alembic_location, alembic_revision
 from .app import Test as app
 
 Session = app.get_persistent_store_database("place_db", as_sessionmaker=True)
@@ -16,7 +16,7 @@ class Place(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String)
     state = Column(String)
-    geom = Column(Geometry(geometry_type="POINT"))
+    temp = Column(Integer)
 
 
 class NewTable(Base):
@@ -26,7 +26,6 @@ class NewTable(Base):
     geom = Column(Geometry(geometry_type="LINESTRING"))
     more = Column(Text)
     even_more = Column(ForeignKey("places.id"))
-    even_even_more = Column(Boolean)
 
 
 def db_initializer(engine, first_time):
@@ -48,4 +47,15 @@ def db_initializer(engine, first_time):
         # alembic_engine(engine, "/tethysdev/tethysapp-test/tethysapp/test/alembic.ini")
         # alembic_engine(engine, "alembic.ini") equivalent to alembic_engine(engine)
 
-        alembic_suite(engine, "alembic.ini")
+        ini_path = "/tethysdev/tethysapp-test/tethysapp/test/alembic.ini"
+        directory_path = "/tethysdev/tethysapp-test/tethysapp/test/alembic"
+
+        alembic_engine(
+            engine=engine,
+            ini_path=ini_path,
+        )
+        alembic_location(
+            ini_path=ini_path,
+            directory_path=directory_path,
+        )
+        alembic_revision(ini_path=ini_path)
