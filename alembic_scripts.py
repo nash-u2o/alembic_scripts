@@ -1,5 +1,7 @@
 import configparser
 import os
+import pathlib
+import shutil
 
 import alembic.command as ac
 from alembic.config import Config
@@ -16,7 +18,7 @@ def _path_resolver(path):
     return None
 
 
-# Sets the sqlalchemy.url in alembic.ini to locate the database
+# Sets the sqlalchemy.url in alembic.ini allowing alembic to locate the database
 def alembic_engine(engine, ini_path):
     ini_path = _path_resolver(ini_path)
 
@@ -31,6 +33,7 @@ def alembic_engine(engine, ini_path):
 
 
 # Sets the script_location in alembic.ini to locate alembic directory
+# Allows tethys syncstores app to be called from anywhere. alembic.ini originally uses relative paths
 def alembic_location(ini_path, directory_path):
     ini_path = _path_resolver(ini_path)
     directory_path = _path_resolver(directory_path)
@@ -50,7 +53,29 @@ def alembic_revision(ini_path):
 
     if ini_path is not None:
         alembic_config = Config(ini_path)
+
         # Generate revisions for table modifications
         ac.revision(alembic_config, autogenerate=True)
-        # Upgrade the db to reflect the most recent revision (heads)
+        # Upgrade the db to reflect the most recent revision (heads) created above
         ac.upgrade(alembic_config, revision="heads")
+
+
+# Delete migrations. Typically used on first_time to delete old migrations whose existence would cause exceptions
+def delete_alembic_migrations(directory_path):
+    directory_path = _path_resolver(directory_path)
+    dp = pathlib.Path(directory_path)
+
+    # ensure .../alembic/versions exists before deleting files
+    version_path = dp / "versions"
+    if version_path.exists():
+        # Delete everything in the versions directory
+        for file in os.listdir(version_path):
+            try:
+                if os.path.isfile(file):
+                    os.remove(file)
+                if os.path.isdir(file):
+                    shutil.rmtree(file)
+            except Exception as e:
+                print("Failed to delete %s. Reason: %s" % (file, e))
+    else:
+        print(f"Invalid path {directory_path}")
